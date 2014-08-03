@@ -1,0 +1,16 @@
+{
+  "user": {
+    "username": "username",
+    "password": "password",
+    "accesskey": "accesskey",
+    "secretkey": "secretkey"
+  },
+  "bucket": {
+    "name": "name",
+    "is_open": true
+    "domain": "domain"
+  },
+  "upload": {
+    "overwrite": false
+  }
+}
