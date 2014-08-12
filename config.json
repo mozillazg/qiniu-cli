@@ -6,9 +6,12 @@
     "secretkey": "secretkey"
   },
   "bucket": {
-    "name": "name",
-    "is_open": true
-    "domain": "domain"
+    "default": {
+      "name": "name",
+      "is_open": true,
+      "domain": null,
+      "auto_name': false
+    }
   },
   "upload": {
     "overwrite": false
