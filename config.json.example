@@ -1,0 +1,17 @@
+{
+  "user": {
+    "username": "",
+    "password": "",
+    "accesskey": "",
+    "secretkey": ""
+  },
+  "bucket": {
+    "default": {
+      "name": "",
+      "is_open": true,
+      "domain": null,
+      "auto_name": false,
+      "overwrite": false
+    }
+  }
+}

@@ -55,11 +55,10 @@ def upload(qn, f, save_dir, save_name, auto_name):
         save_name = '%s%s' % (sha1(str(time.time())).hexdigest(),
                               os.path.splitext(f.name)[-1])
     else:
-        raise click.UsageError('Please set filename with --save-name, '
-                               'or use --auto-name auto name file')
+        save_name = f.name
 
     to = os.path.join(save_dir, save_name)
-    if not qn.config['upload']['overwrite'] and qn.bucket.exists(to):
+    if not qn.bucket_conf['overwrite'] and qn.bucket.exists(to):
         print(qn.bucket.file_url(to))
     else:
         print(qn.bucket.upload(f, to)['url'])

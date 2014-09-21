@@ -23,11 +23,12 @@ class QiNiu(object):
     headers = {
         'Accept': ('text/html,application/xhtml+xml,'
                    'application/xml;q=0.9,*/*;q=0.8'),
-        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Encoding': 'gzip,deflate,sdch',
         'Accept-Language': 'en-US,en;q=0.5',
         'Connection': 'keep-alive',
         'DNT': 1,
         'Host': 'portal.qiniu.com',
+        'Origin': 'https://portal.qiniu.com',
         'Referer': 'https://portal.qiniu.com/',
         'User-Agent': ('Mozilla/5.0 (Windows NT 6.2; rv:29.0) '
                        'Gecko/20100101 Firefox/29.0'),
@@ -40,7 +41,9 @@ class QiNiu(object):
         self.request = requests.Session()
         if not os.path.exists(self.cookies_json_file):
             open(self.cookies_json_file, 'w').close()
-        self.login()
+
+        assert self.login(), 'Login Failed!'
+
         if not all([accesskey, secretkey]):
             self.get_tokens()
             self.secretkey = self.tokens['secret']
@@ -59,9 +62,10 @@ class QiNiu(object):
             'password': self.password,
             'remember': 'true',
         }
-        headers = {
+        headers = self.headers.copy()
+        headers.update({
             'Referer': 'https://portal.qiniu.com/signin',
-        }
+        })
         response = self.request.post(url=url, data=data, headers=headers)
         # 保存 cookies
         with open(self.cookies_json_file, 'w') as f:
@@ -76,23 +80,26 @@ class QiNiu(object):
             except ValueError as e:
                 logger.exception(e)
                 return self.__login()
-            headers = {
+            headers = self.headers.copy()
+            headers.update({
                 'Referer': 'https://portal.qiniu.com/',
                 'X-Requested-With': 'XMLHttpRequest',
-            }
+            })
             url = 'https://portal.qiniu.com/api/wallet/info'
-            if self.request.post(url, headers=headers).ok:
+            if self.request.post(url, headers=headers).status_code == 200:
                 return True
             else:
                 logger.debug('Relogin')
                 return self.__login()
 
     def get_tokens(self):
-        headers = {
+        headers = self.headers.copy()
+        headers.update({
             'Referer': 'https://portal.qiniu.com/setting/key',
-        }
-        url = 'https://portal.qiniu.com/access_info'
-        self.tokens = self.request.get(url, headers=headers).json()['keys'][0]
+        })
+        url = 'https://portal.qiniu.com/setting/access'
+        response = self.request.get(url, headers=headers)
+        self.tokens = response.json()['keys'][0]
         return self.tokens
 
 
@@ -100,21 +107,22 @@ class Bucket(object):
     def __init__(self, qiniu, name, is_open=True, domain=None):
         self.qiniu = qiniu
         self.request = qiniu.request
+        self.headers = qiniu.headers
         self.bucket_name = name
         if not domain:
             self.base_url = 'http://%s.qiniudn.com' % name
         else:
             self.base_url = 'http://%s' % domain
         self.is_open = is_open
-        self.referer_url = ('https://portal.qiniu.com/bucket/'
-                            'resource?bucket=%s' % name)
+        self.referer_url = ('https://portal.qiniu.com/bucket/%s/resource' % name)
 
     def exists(self, key):
         url = 'https://portal.qiniu.com/bucket/%s/verify' % self.bucket_name
-        headers = {
+        headers = self.headers.copy()
+        headers.update({
             'X-Requested-With': 'XMLHttpRequest',
             'Referer': self.referer_url,
-        }
+        })
         data = {
             'type': 'filename',
             'bucket': self.bucket_name,
@@ -136,13 +144,14 @@ class Bucket(object):
 
     def upload(self, f, key):
         """key: 文件保存位置: ab/a.txt"""
-        headers = {
+        headers = self.headers.copy()
+        headers.update({
             'Access-Control-Request-Headers': 'content-type',
             'Access-Control-Request-Method': 'POST',
             'Host': 'up.qbox.me',
             'Origin': 'https://portal.qiniu.com',
             'Referer': self.referer_url,
-        }
+        })
         url = 'https://up.qbox.me/'
         self.request.options(url)
         headers.pop('Access-Control-Request-Headers')
