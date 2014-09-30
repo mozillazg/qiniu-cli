@@ -7,6 +7,10 @@ Qiniu CLI tool
 $ python -m qiniu_cli.cli upload requirements.txt
 http://tmp-images.qiniudn.com/requirements.txt
 
+$ python -m qiniu_cli.cli upload --save-dir "comics/2014/" *.png *.txt
+http://tmp-images.qiniudn.com/comics/2014/2014-09-25-EveryFall.zh-cn.png
+http://tmp-images.qiniudn.com/comics/2014/3014.painting.png
+http://tmp-images.qiniudn.com/comics/2014/requirements.txt
 
 $ python -m qiniu_cli.cli --help
 Usage: cli.py [OPTIONS] COMMAND [ARGS]...

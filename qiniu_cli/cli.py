@@ -48,20 +48,22 @@ def main(ctx, config=None, bucket=None, verbose=False):
               help='Upload to directory.')
 @click.option('--auto-name', is_flag=True,
               help='Auto name file by sh1 hex digest with timestamp.')
-@click.argument('f', type=click.File('rb'))
+@click.argument('files', required=True, nargs=-1, type=click.Path(exists=True))
 @pass_qiniu
-def upload(qn, f, save_dir, save_name, auto_name):
-    if not save_name and (auto_name or qn.bucket_conf['auto_name']):
-        save_name = '%s%s' % (sha1(str(time.time())).hexdigest(),
-                              os.path.splitext(f.name)[-1])
-    else:
-        save_name = f.name
+def upload(qn, files, save_dir, save_name, auto_name):
+    for path in files:
+        f = open(path, 'rb')
+        if not save_name and (auto_name or qn.bucket_conf['auto_name']):
+            save_name = '%s%s' % (sha1(str(time.time())).hexdigest(),
+                                  os.path.splitext(f.name)[-1])
+        else:
+            save_name = f.name
 
-    to = os.path.join(save_dir, save_name)
-    if not qn.bucket_conf['overwrite'] and qn.bucket.exists(to):
-        print(qn.bucket.file_url(to))
-    else:
-        print(qn.bucket.upload(f, to)['url'])
+        to = os.path.join(save_dir, save_name)
+        if not qn.bucket_conf['overwrite'] and qn.bucket.exists(to):
+            print(qn.bucket.file_url(to))
+        else:
+            print(qn.bucket.upload(f, to)['url'])
 
 
 @main.command(short_help='Search file.')
